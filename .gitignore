@@ -1,0 +1,9 @@
+/.venv/
+/.tmp/
+/.pytest_cache/
+/.ruff_cache/
+/data/
+/dist/
+/build/
+*.egg-info/
+__pycache__/

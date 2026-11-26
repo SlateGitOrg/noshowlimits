@@ -1,0 +1,286 @@
+<?xml version='1.0' encoding='utf-8'?>
+<workbook xmlns:user="http://www.tableausoftware.com/xml/user" original-version="18.1" source-build="2024.1.0 (20241.24.0314.1020)" source-platform="win" version="18.1">
+  <preferences/>
+  <datasources>
+    <datasource version="18.1" hasconnection="false" inline="true" name="Parameters">
+      <aliases enabled="yes"/>
+      <column caption="Limit Method" datatype="string" name="[Parameter 1]" param-domain-type="list" role="measure" type="nominal" value="&quot;multiplicative&quot;">
+        <calculation class="tableau" formula="&quot;multiplicative&quot;"/>
+        <members>
+          <member value="&quot;multiplicative&quot;"/>
+          <member value="&quot;additive&quot;"/>
+        </members>
+      </column>
+    </datasource>
+    <datasource version="18.1" caption="Clinic funnel" inline="true" name="federated.clinic_funnel">
+      <connection class="federated">
+        <named-connections>
+          <named-connection caption="clinic_funnel" name="textscan.clinic_funnel">
+            <connection class="textscan" directory="data" filename="clinic_funnel.csv" password="" server=""/>
+          </named-connection>
+        </named-connections>
+        <relation connection="textscan.clinic_funnel" name="clinic_funnel.csv" table="[clinic_funnel#csv]" type="table">
+          <columns character-set="UTF-8" header="yes" locale="en_US" separator=",">
+            <column datatype="string" name="clinic" ordinal="0"/>
+            <column datatype="string" name="specialty" ordinal="1"/>
+            <column datatype="integer" name="appointments" ordinal="2"/>
+            <column datatype="integer" name="eligible" ordinal="3"/>
+            <column datatype="integer" name="excluded" ordinal="4"/>
+            <column datatype="integer" name="excl_hospital_cancel" ordinal="5"/>
+            <column datatype="integer" name="excl_early_patient_cancel" ordinal="6"/>
+            <column datatype="integer" name="excl_late_patient_cancel" ordinal="7"/>
+            <column datatype="integer" name="observed" ordinal="8"/>
+            <column datatype="real" name="expected" ordinal="9"/>
+            <column datatype="real" name="raw_rate" ordinal="10"/>
+            <column datatype="integer" name="raw_rank" ordinal="11"/>
+            <column datatype="real" name="oe_ratio" ordinal="12"/>
+            <column datatype="real" name="adjusted_rate" ordinal="13"/>
+            <column datatype="real" name="overall_rate" ordinal="14"/>
+            <column datatype="real" name="phi" ordinal="15"/>
+            <column datatype="real" name="tau2" ordinal="16"/>
+            <column datatype="real" name="lower_95_mult" ordinal="17"/>
+            <column datatype="real" name="upper_95_mult" ordinal="18"/>
+            <column datatype="real" name="lower_998_mult" ordinal="19"/>
+            <column datatype="real" name="upper_998_mult" ordinal="20"/>
+            <column datatype="real" name="lower_95_add" ordinal="21"/>
+            <column datatype="real" name="upper_95_add" ordinal="22"/>
+            <column datatype="real" name="lower_998_add" ordinal="23"/>
+            <column datatype="real" name="upper_998_add" ordinal="24"/>
+            <column datatype="string" name="status_mult" ordinal="25"/>
+            <column datatype="string" name="status_add" ordinal="26"/>
+          </columns>
+        </relation>
+      </connection>
+      <column caption="O/E Ratio" datatype="real" name="[O/E Ratio]" role="measure" type="quantitative">
+        <calculation class="tableau" formula="[observed] / [expected]"/>
+      </column>
+      <column caption="Risk-adjusted Rate" datatype="real" name="[Risk-adjusted Rate]" role="measure" type="quantitative">
+        <calculation class="tableau" formula="[O/E Ratio] * [overall_rate]"/>
+      </column>
+      <column caption="Upper 95" datatype="real" name="[Upper 95]" role="measure" type="quantitative">
+        <calculation class="tableau" formula="IIF([Parameters].[Parameter 1] = &quot;additive&quot;, 1 + 1.959963984540054 * SQRT(1 / [expected] + [tau2]), 1 + 1.959963984540054 * SQRT([phi] / [expected]))"/>
+      </column>
+      <column caption="Upper 99.8" datatype="real" name="[Upper 99.8]" role="measure" type="quantitative">
+        <calculation class="tableau" formula="IIF([Parameters].[Parameter 1] = &quot;additive&quot;, 1 + 3.090232306167813 * SQRT(1 / [expected] + [tau2]), 1 + 3.090232306167813 * SQRT([phi] / [expected]))"/>
+      </column>
+      <column caption="Lower 95" datatype="real" name="[Lower 95]" role="measure" type="quantitative">
+        <calculation class="tableau" formula="IIF([Parameters].[Parameter 1] = &quot;additive&quot;, MAX(0, 1 - 1.959963984540054 * SQRT(1 / [expected] + [tau2])), MAX(0, 1 - 1.959963984540054 * SQRT([phi] / [expected])))"/>
+      </column>
+      <column caption="Lower 99.8" datatype="real" name="[Lower 99.8]" role="measure" type="quantitative">
+        <calculation class="tableau" formula="IIF([Parameters].[Parameter 1] = &quot;additive&quot;, MAX(0, 1 - 3.090232306167813 * SQRT(1 / [expected] + [tau2])), MAX(0, 1 - 3.090232306167813 * SQRT([phi] / [expected])))"/>
+      </column>
+      <column caption="Funnel Status" datatype="string" name="[Funnel Status]" role="dimension" type="nominal">
+        <calculation class="tableau" formula="IIF([O/E Ratio] &gt; [Upper 99.8], &quot;above_99.8&quot;, IIF([O/E Ratio] &gt; [Upper 95], &quot;above_95&quot;, IIF([O/E Ratio] &lt; [Lower 99.8], &quot;below_99.8&quot;, IIF([O/E Ratio] &lt; [Lower 95], &quot;below_95&quot;, &quot;within&quot;))))"/>
+      </column>
+    </datasource>
+    <datasource version="18.1" caption="Funnel plot" inline="true" name="federated.funnel_plot">
+      <connection class="federated">
+        <named-connections>
+          <named-connection caption="funnel_plot" name="textscan.funnel_plot">
+            <connection class="textscan" directory="data" filename="funnel_plot.csv" password="" server=""/>
+          </named-connection>
+        </named-connections>
+        <relation connection="textscan.funnel_plot" name="funnel_plot.csv" table="[funnel_plot#csv]" type="table">
+          <columns character-set="UTF-8" header="yes" locale="en_US" separator=",">
+            <column datatype="string" name="series" ordinal="0"/>
+            <column datatype="string" name="method" ordinal="1"/>
+            <column datatype="real" name="expected" ordinal="2"/>
+            <column datatype="real" name="value" ordinal="3"/>
+            <column datatype="string" name="clinic" ordinal="4"/>
+            <column datatype="string" name="status" ordinal="5"/>
+          </columns>
+        </relation>
+      </connection>
+      <column caption="Method Match" datatype="boolean" name="[Method Match]" role="dimension" type="nominal">
+        <calculation class="tableau" formula="[method] = [Parameters].[Parameter 1]"/>
+      </column>
+      <column caption="Limit Value" datatype="real" name="[Limit Value]" role="measure" type="quantitative">
+        <calculation class="tableau" formula="IIF([series] &lt;&gt; &quot;clinic&quot;, [value], NULL)"/>
+      </column>
+      <column caption="Clinic O/E" datatype="real" name="[Clinic O/E]" role="measure" type="quantitative">
+        <calculation class="tableau" formula="IIF([series] = &quot;clinic&quot;, [value], NULL)"/>
+      </column>
+    </datasource>
+  </datasources>
+  <worksheets>
+    <worksheet name="Funnel Plot">
+      <table>
+        <view>
+          <datasources>
+            <datasource caption="Funnel plot" name="federated.funnel_plot"/>
+            <datasource hasconnection="false" name="Parameters"/>
+          </datasources>
+          <datasource-dependencies datasource="federated.funnel_plot">
+            <column datatype="real" name="[Limit Value]" role="measure" type="quantitative" caption="Limit Value">
+              <calculation class="tableau" formula="IIF([series] &lt;&gt; &quot;clinic&quot;, [value], NULL)"/>
+            </column>
+            <column datatype="real" name="[Clinic O/E]" role="measure" type="quantitative" caption="Clinic O/E">
+              <calculation class="tableau" formula="IIF([series] = &quot;clinic&quot;, [value], NULL)"/>
+            </column>
+            <column datatype="real" name="[expected]" role="measure" type="quantitative"/>
+            <column datatype="string" name="[series]" role="dimension" type="nominal"/>
+            <column datatype="string" name="[status]" role="dimension" type="nominal"/>
+            <column datatype="string" name="[clinic]" role="dimension" type="nominal"/>
+            <column datatype="boolean" name="[Method Match]" role="dimension" type="nominal" caption="Method Match">
+              <calculation class="tableau" formula="[method] = [Parameters].[Parameter 1]"/>
+            </column>
+            <column-instance column="[Limit Value]" derivation="None" name="[none:Limit Value:qk]" pivot="key" type="quantitative"/>
+            <column-instance column="[Clinic O/E]" derivation="None" name="[none:Clinic O/E:qk]" pivot="key" type="quantitative"/>
+            <column-instance column="[expected]" derivation="None" name="[none:expected:qk]" pivot="key" type="quantitative"/>
+            <column-instance column="[series]" derivation="None" name="[none:series:nk]" pivot="key" type="nominal"/>
+            <column-instance column="[status]" derivation="None" name="[none:status:nk]" pivot="key" type="nominal"/>
+            <column-instance column="[clinic]" derivation="None" name="[none:clinic:nk]" pivot="key" type="nominal"/>
+            <column-instance column="[Method Match]" derivation="None" name="[none:Method Match:nk]" pivot="key" type="nominal"/>
+          </datasource-dependencies>
+          <datasource-dependencies datasource="Parameters">
+            <column caption="Limit Method" datatype="string" name="[Parameter 1]" param-domain-type="list" role="measure" type="nominal"/>
+          </datasource-dependencies>
+          <filter class="categorical" column="[federated.funnel_plot].[none:Method Match:nk]">
+            <groupfilter function="member" level="[none:Method Match:nk]" member="true"/>
+          </filter>
+          <aggregation value="false"/>
+        </view>
+        <style>
+          <style-rule element="axis">
+            <encoding attr="space" class="0" field="[federated.funnel_plot].[none:Clinic O/E:qk]" field-type="quantitative" synchronized="true" type="space"/>
+          </style-rule>
+        </style>
+        <panes>
+          <pane selection-relaxation-option="selection-relaxation-allow" id="1" y-axis-name="[federated.funnel_plot].[none:Limit Value:qk]">
+            <view>
+              <breakdown value="auto"/>
+            </view>
+            <mark class="Line"/>
+            <encodings>
+              <color column="[federated.funnel_plot].[none:series:nk]"/>
+            </encodings>
+          </pane>
+          <pane selection-relaxation-option="selection-relaxation-allow" id="2" y-axis-name="[federated.funnel_plot].[none:Clinic O/E:qk]">
+            <view>
+              <breakdown value="auto"/>
+            </view>
+            <mark class="Circle"/>
+            <encodings>
+              <color column="[federated.funnel_plot].[none:status:nk]"/>
+              <lod column="[federated.funnel_plot].[none:clinic:nk]"/>
+            </encodings>
+          </pane>
+        </panes>
+        <rows>([federated.funnel_plot].[none:Limit Value:qk] + [federated.funnel_plot].[none:Clinic O/E:qk])</rows>
+        <cols>[federated.funnel_plot].[none:expected:qk]</cols>
+      </table>
+    </worksheet>
+    <worksheet name="Raw Rate League Table">
+      <table>
+        <view>
+          <datasources>
+            <datasource caption="Clinic funnel" name="federated.clinic_funnel"/>
+            <datasource hasconnection="false" name="Parameters"/>
+          </datasources>
+          <datasource-dependencies datasource="federated.clinic_funnel">
+            <column datatype="string" name="[clinic]" role="dimension" type="nominal"/>
+            <column datatype="real" name="[raw_rate]" role="measure" type="quantitative"/>
+            <column datatype="string" name="[Funnel Status]" role="dimension" type="nominal" caption="Funnel Status">
+              <calculation class="tableau" formula="IIF([O/E Ratio] &gt; [Upper 99.8], &quot;above_99.8&quot;, IIF([O/E Ratio] &gt; [Upper 95], &quot;above_95&quot;, IIF([O/E Ratio] &lt; [Lower 99.8], &quot;below_99.8&quot;, IIF([O/E Ratio] &lt; [Lower 95], &quot;below_95&quot;, &quot;within&quot;))))"/>
+            </column>
+            <column datatype="integer" name="[raw_rank]" role="measure" type="quantitative"/>
+            <column-instance column="[clinic]" derivation="None" name="[none:clinic:nk]" pivot="key" type="nominal"/>
+            <column-instance column="[raw_rate]" derivation="Sum" name="[sum:raw_rate:qk]" pivot="key" type="quantitative"/>
+            <column-instance column="[Funnel Status]" derivation="None" name="[none:Funnel Status:nk]" pivot="key" type="nominal"/>
+            <column-instance column="[raw_rank]" derivation="None" name="[none:raw_rank:qk]" pivot="key" type="quantitative"/>
+          </datasource-dependencies>
+          <datasource-dependencies datasource="Parameters">
+            <column caption="Limit Method" datatype="string" name="[Parameter 1]" param-domain-type="list" role="measure" type="nominal"/>
+          </datasource-dependencies>
+          <computed-sort column="[federated.clinic_funnel].[none:clinic:nk]" direction="DESC" using="[federated.clinic_funnel].[sum:raw_rate:qk]"/>
+          <aggregation value="true"/>
+        </view>
+        <style/>
+        <panes>
+          <pane selection-relaxation-option="selection-relaxation-allow">
+            <view>
+              <breakdown value="auto"/>
+            </view>
+            <mark class="Bar"/>
+            <encodings>
+              <color column="[federated.clinic_funnel].[none:Funnel Status:nk]"/>
+              <lod column="[federated.clinic_funnel].[none:raw_rank:qk]"/>
+            </encodings>
+          </pane>
+        </panes>
+        <rows>[federated.clinic_funnel].[none:clinic:nk]</rows>
+        <cols>[federated.clinic_funnel].[sum:raw_rate:qk]</cols>
+      </table>
+    </worksheet>
+    <worksheet name="Exclusions Summary">
+      <table>
+        <view>
+          <datasources>
+            <datasource caption="Clinic funnel" name="federated.clinic_funnel"/>
+            <datasource hasconnection="false" name="Parameters"/>
+          </datasources>
+          <datasource-dependencies datasource="federated.clinic_funnel">
+            <column datatype="string" name="[clinic]" role="dimension" type="nominal"/>
+            <column datatype="integer" name="[excluded]" role="measure" type="quantitative"/>
+            <column datatype="integer" name="[excl_hospital_cancel]" role="measure" type="quantitative"/>
+            <column datatype="integer" name="[excl_early_patient_cancel]" role="measure" type="quantitative"/>
+            <column datatype="integer" name="[excl_late_patient_cancel]" role="measure" type="quantitative"/>
+            <column-instance column="[clinic]" derivation="None" name="[none:clinic:nk]" pivot="key" type="nominal"/>
+            <column-instance column="[excluded]" derivation="Sum" name="[sum:excluded:qk]" pivot="key" type="quantitative"/>
+            <column-instance column="[excl_hospital_cancel]" derivation="Sum" name="[sum:excl_hospital_cancel:qk]" pivot="key" type="quantitative"/>
+            <column-instance column="[excl_early_patient_cancel]" derivation="Sum" name="[sum:excl_early_patient_cancel:qk]" pivot="key" type="quantitative"/>
+            <column-instance column="[excl_late_patient_cancel]" derivation="Sum" name="[sum:excl_late_patient_cancel:qk]" pivot="key" type="quantitative"/>
+          </datasource-dependencies>
+          <datasource-dependencies datasource="Parameters">
+            <column caption="Limit Method" datatype="string" name="[Parameter 1]" param-domain-type="list" role="measure" type="nominal"/>
+          </datasource-dependencies>
+          <aggregation value="true"/>
+        </view>
+        <style/>
+        <panes>
+          <pane selection-relaxation-option="selection-relaxation-allow">
+            <view>
+              <breakdown value="auto"/>
+            </view>
+            <mark class="Bar"/>
+            <encodings>
+              <lod column="[federated.clinic_funnel].[sum:excl_hospital_cancel:qk]"/>
+              <lod column="[federated.clinic_funnel].[sum:excl_early_patient_cancel:qk]"/>
+              <lod column="[federated.clinic_funnel].[sum:excl_late_patient_cancel:qk]"/>
+            </encodings>
+          </pane>
+        </panes>
+        <rows>[federated.clinic_funnel].[none:clinic:nk]</rows>
+        <cols>[federated.clinic_funnel].[sum:excluded:qk]</cols>
+      </table>
+    </worksheet>
+  </worksheets>
+  <dashboards>
+    <dashboard name="No-show Limits">
+      <style/>
+      <size maxheight="900" maxwidth="1400" minheight="900" minwidth="1400"/>
+      <zones>
+        <zone x="0" y="0" h="100000" id="1" type-v2="layout-basic" w="100000">
+          <zone x="0" y="0" h="60000" id="2" name="Funnel Plot" w="100000"/>
+          <zone x="0" y="60000" h="40000" id="3" name="Raw Rate League Table" w="50000"/>
+          <zone x="50000" y="60000" h="40000" id="4" name="Exclusions Summary" w="50000"/>
+        </zone>
+      </zones>
+    </dashboard>
+  </dashboards>
+  <windows source-height="30">
+    <window class="dashboard" maximized="true" name="No-show Limits">
+      <viewpoints/>
+      <active id="-1"/>
+    </window>
+    <window class="worksheet" name="Funnel Plot">
+      <cards/>
+    </window>
+    <window class="worksheet" name="Raw Rate League Table">
+      <cards/>
+    </window>
+    <window class="worksheet" name="Exclusions Summary">
+      <cards/>
+    </window>
+  </windows>
+</workbook>

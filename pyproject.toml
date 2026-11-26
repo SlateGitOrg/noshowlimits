@@ -1,0 +1,43 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "noshowlimits"
+version = "0.1.0"
+description = "Case-mix adjusted clinic no-show rates on overdispersion-corrected funnel limits, with a statically validated Tableau workbook."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "noshowlimits contributors" }]
+dependencies = [
+    "numpy>=1.26",
+    "pandas>=2.1",
+    "scipy>=1.11",
+    "statsmodels>=0.14",
+    "lxml>=5.0",
+    "typer>=0.12",
+    "rich>=13.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "ruff>=0.5", "pyyaml>=6.0"]
+
+[project.scripts]
+noshowlimits = "noshowlimits.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/noshowlimits"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+filterwarnings = ["error"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = [".tmp"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
